@@ -9,7 +9,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: voltbarrio-demo-db
+          name: hospy_db
           property: connectionString
       - key: GRPC_ADDR
         value: 127.0.0.1:9090
@@ -25,9 +25,3 @@ services:
         sync: false
       - key: FRONTEND_ORIGIN
         value: https://voltbarrio.vercel.app
-
-databases:
-  - name: voltbarrio-demo-db
-    databaseName: volt
-    user: volt
-    plan: free

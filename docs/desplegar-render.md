@@ -4,9 +4,10 @@ El frontend y el backend quedan en plataformas distintas:
 
 - Vercel publica el sitio de `web/`. `vercel.json` construye `web/dist` e
   inyecta la dirección del microservicio de medición.
-- Render, con [`render.yaml`](../render.yaml), crea dos recursos:
-  `voltbarrio-medicion-demo` (microservicio Go de mediciones) y
-  `voltbarrio-demo-db` (PostgreSQL).
+- Render, con [`render.yaml`](../render.yaml), crea solo el microservicio
+  `voltbarrio-medicion-demo`. No crea otra base: reutiliza `hospy_db`, la que
+  ya usa Triaje. Las lecturas quedan en el esquema `voltbarrio`, aparte de las
+  tablas del hospital.
 
 Órdenes, emparejamiento, red, dispositivos, liquidación y auditoría siguen en
 el repositorio, pero todavía no tienen un servidor ejecutable. Esta publicación
@@ -29,10 +30,10 @@ comprueba el microservicio de medición.
    privadas.
 2. Abre [New Blueprint](https://dashboard.render.com/blueprint/new?repo=https://github.com/rafael5678/taller_Gr)
    y confirma que Render detecte `render.yaml` en la raíz.
-3. Render mostrará el microservicio y la base PostgreSQL. Si pide el valor
-   inicial de `MEASUREMENT_PUBLIC_KEYS`, pega `{}`. Revisa cualquier aviso de
-   costos y elige **Apply**. El primer build compila Go y genera los stubs
-   protobuf dentro de la imagen.
+3. Render mostrará solo el microservicio de medición. Si pide
+   `MEASUREMENT_PUBLIC_KEYS`, pega `{}`. Revisa cualquier aviso de costos y
+   elige **Apply** o **Manual sync**. El primer build compila Go y genera los
+   stubs protobuf dentro de la imagen.
 4. Espera a que el backend indique **Live** y responda en `/healthz`. Si el
    sitio de Vercel no queda en `https://voltbarrio.vercel.app`, cambia
    `FRONTEND_ORIGIN` por ese origen exacto, incluido `https://`, y redepliega.

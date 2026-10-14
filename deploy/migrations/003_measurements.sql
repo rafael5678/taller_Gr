@@ -1,3 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS voltbarrio;
+
+SET search_path TO voltbarrio;
+
 CREATE TABLE IF NOT EXISTS measurement_readings (
     reading_id TEXT PRIMARY KEY,
     household_id TEXT NOT NULL,

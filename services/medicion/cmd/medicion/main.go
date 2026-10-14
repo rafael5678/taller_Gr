@@ -49,6 +49,7 @@ func run() error {
 	if databaseURL == "" {
 		return errors.New("DATABASE_URL is required")
 	}
+	databaseURL = withMeasurementSchema(databaseURL)
 	if !insecureLocal && (certFile == "" || keyFile == "" || clientCAFile == "") {
 		return errors.New("TLS_CERT_FILE, TLS_KEY_FILE and TLS_CLIENT_CA_FILE are required")
 	}
@@ -219,6 +220,17 @@ func loadKeys(raw string) (map[string]measurement.SigningKey, error) {
 		}
 	}
 	return result, nil
+}
+
+func withMeasurementSchema(databaseURL string) string {
+	if strings.Contains(databaseURL, "search_path") {
+		return databaseURL
+	}
+	separator := "?"
+	if strings.Contains(databaseURL, "?") {
+		separator = "&"
+	}
+	return databaseURL + separator + "options=-csearch_path%3Dvoltbarrio"
 }
 
 func envOr(name, fallback string) string {

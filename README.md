@@ -60,7 +60,7 @@ El endpoint de métricas de medición queda en `:9100/`.
 ## Demo: frontend en Vercel y medición en Render
 
 El sitio estático vive en Vercel. Render ejecuta solo el microservicio de
-medición y su PostgreSQL, definidos en `render.yaml`. La guía está en
+medición y reutiliza la base `hospy_db`, definidos en `render.yaml`. La guía está en
 [`docs/desplegar-render.md`](docs/desplegar-render.md). Esta demo publica el
 servicio de medición, no los demás microservicios del mercado.
 
