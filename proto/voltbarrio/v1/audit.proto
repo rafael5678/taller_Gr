@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service AuditService {
+  // event_id is the idempotency key. The server assigns sequence numbers and
+  // links each record to the previous record's hash.
+  rpc AppendAuditEvent(AppendAuditEventRequest) returns (AppendAuditEventResponse);
+  rpc VerifyAuditChain(VerifyAuditChainRequest) returns (VerifyAuditChainResponse);
+}
+
+enum AuditHashAlgorithm {
+  AUDIT_HASH_ALGORITHM_UNSPECIFIED = 0;
+  AUDIT_HASH_ALGORITHM_SHA256 = 1;
+}
+
+message AppendAuditEventRequest {
+  string event_id = 1;
+  string event_type = 2;
+  string actor_id = 3;
+  bytes payload = 4;
+}
+
+message AppendAuditEventResponse {
+  uint64 sequence_number = 1;
+  bytes previous_hash = 2;
+  bytes record_hash = 3;
+  google.protobuf.Timestamp recorded_at = 4;
+  AuditHashAlgorithm hash_algorithm = 5;
+}
+
+message VerifyAuditChainRequest {}
+
+message VerifyAuditChainResponse {
+  bool valid = 1;
+  uint64 records_checked = 2;
+  uint64 first_invalid_sequence = 3;
+  string error = 4;
+  AuditHashAlgorithm hash_algorithm = 5;
+}

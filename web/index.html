@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#092e2b">
+    <title>VoltBarrio | Medición comunitaria</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="VoltBarrio, inicio">
+          <span class="brand-mark">V</span>
+          <span>VoltBarrio</span>
+        </a>
+        <span class="demo-tag"><span class="dot"></span> DEMO ACADÉMICA</span>
+      </header>
+
+      <section class="hero">
+        <div class="eyebrow">ENERGÍA LOCAL, CONFIANZA VECINAL</div>
+        <h1>La energía de tu barrio,<br><em>medida con transparencia.</em></h1>
+        <p>Envía una lectura firmada a la microrred de demostración. La firma
+          Ed25519 acredita el medidor y PostgreSQL evita duplicar lecturas.</p>
+        <div class="status-line"><span id="health-dot" class="dot waiting"></span><span id="health-text">Comprobando backend…</span></div>
+      </section>
+
+      <section class="card setup-card">
+        <div class="section-title"><span class="step">01</span><div><h2>Identidad del medidor</h2><p>Genera una llave de demostración o carga tu archivo local.</p></div></div>
+        <div class="button-row">
+          <button id="generate-key" class="button secondary" type="button">Generar llave Ed25519</button>
+          <label class="button secondary file-button">Cargar archivo de llave<input id="key-file" type="file" accept="application/json,.json"></label>
+        </div>
+        <div id="key-panel" class="key-panel hidden">
+          <div class="key-heading"><span class="dot good"></span> Llave creada en este navegador</div>
+          <p>Agrega esta configuración pública a <code>MEASUREMENT_PUBLIC_KEYS</code> en Render. Nunca compartas la llave privada.</p>
+          <pre id="public-config"></pre>
+          <div class="button-row">
+            <button id="download-key" class="button text-button" type="button">Descargar llave privada</button>
+            <button id="copy-public" class="button text-button" type="button">Copiar configuración pública</button>
+          </div>
+        </div>
+        <div class="key-fields">
+          <label>Hogar<input id="household" value="hogar-demo-001" autocomplete="off"></label>
+          <label>Identificador de llave<input id="key-id" value="medidor-demo-001" autocomplete="off"></label>
+          <label class="private-field">Llave privada Ed25519 (Base64)<input id="private-key" type="password" placeholder="Carga o genera una llave" autocomplete="off"></label>
+        </div>
+        <p class="privacy-note">La llave privada se usa solo en memoria mientras esta página está abierta; no se envía ni se guarda en el servidor.</p>
+      </section>
+
+      <section class="card reading-card">
+        <div class="section-title"><span class="step">02</span><div><h2>Enviar lectura de energía</h2><p>Los intervalos comienzan cada cinco minutos.</p></div></div>
+        <form id="reading-form">
+          <div class="form-grid">
+            <label>Medidor<input id="meter-id" value="medidor-techo-001" required maxlength="100"></label>
+            <label>Inicio del intervalo<input id="interval" type="datetime-local" step="300" required></label>
+            <label>Energía producida <span>(Wh)</span><input id="produced" type="number" min="0" value="1250" required></label>
+            <label>Energía consumida <span>(Wh)</span><input id="consumed" type="number" min="0" value="420" required></label>
+          </div>
+          <button id="submit-reading" class="button primary" type="submit">Firmar y enviar lectura <span aria-hidden="true">↗</span></button>
+        </form>
+      </section>
+
+      <section id="result" class="result hidden" aria-live="polite"></section>
+      <footer><span>VoltBarrio · prototipo educativo</span><span>Sin pagos reales ni dispositivos físicos</span></footer>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

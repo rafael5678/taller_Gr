@@ -1,0 +1,92 @@
+services:
+  certgen:
+    image: alpine:3.20
+    command:
+      - sh
+      - -ec
+      - |
+        apk add --no-cache openssl
+        if [ ! -s /certs/ca.pem ] || [ ! -s /certs/medicion.pem ] || \
+           [ ! -s /certs/medicion-key.pem ] || [ ! -s /certs/envoy.pem ] || \
+           [ ! -s /certs/envoy-key.pem ]; then
+          openssl genrsa -out /certs/ca-key.pem 3072
+          openssl req -x509 -new -nodes -key /certs/ca-key.pem -sha256 -days 3650 \
+            -subj "/CN=VoltBarrio Local Development CA" -out /certs/ca.pem
+          openssl genrsa -out /certs/medicion-key.pem 2048
+          openssl req -new -key /certs/medicion-key.pem -subj "/CN=medicion" \
+            -addext "subjectAltName=DNS:medicion" -out /tmp/medicion.csr
+          openssl x509 -req -in /tmp/medicion.csr -CA /certs/ca.pem -CAkey /certs/ca-key.pem \
+            -CAcreateserial -days 825 -sha256 -copy_extensions copy -out /certs/medicion.pem
+          openssl genrsa -out /certs/envoy-key.pem 2048
+          openssl req -new -key /certs/envoy-key.pem -subj "/CN=envoy" \
+            -addext "extendedKeyUsage=clientAuth" -out /tmp/envoy.csr
+          openssl x509 -req -in /tmp/envoy.csr -CA /certs/ca.pem -CAkey /certs/ca-key.pem \
+            -CAcreateserial -days 825 -sha256 -copy_extensions copy -out /certs/envoy.pem
+          chmod 644 /certs/*-key.pem
+        fi
+    volumes:
+      - dev-certs:/certs
+    restart: "no"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-volt}
+      POSTGRES_USER: ${POSTGRES_USER:-volt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-volt_local_dev_only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  medicion:
+    build:
+      context: ..
+      dockerfile: services/medicion/Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-volt}:${POSTGRES_PASSWORD:-volt_local_dev_only}@postgres:5432/${POSTGRES_DB:-volt}?sslmode=disable
+      GRPC_ADDR: :9090
+      METRICS_ADDR: :9100
+      TLS_CERT_FILE: /certs/medicion.pem
+      TLS_KEY_FILE: /certs/medicion-key.pem
+      TLS_CLIENT_CA_FILE: /certs/ca.pem
+      MEASUREMENT_RATE_LIMIT: ${MEASUREMENT_RATE_LIMIT:-120}
+      MEASUREMENT_PUBLIC_KEYS: ${MEASUREMENT_PUBLIC_KEYS:-}
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    volumes:
+      - dev-certs:/certs:ro
+    expose:
+      - "9090"
+    ports:
+      - "9100:9100"
+
+  envoy:
+    image: envoyproxy/envoy:v1.32-latest
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+      medicion:
+        condition: service_started
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./envoy/descriptor.pb:/etc/envoy/descriptor.pb:ro
+      - dev-certs:/etc/envoy/certs:ro
+
+volumes:
+  postgres-data:
+  dev-certs:

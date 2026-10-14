@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+service MeasurementService {
+  // Accepts signed readings as a client stream so brief device outages do not
+  // prevent other meters from submitting their data.
+  rpc IngestReadings(stream IngestReadingsRequest) returns (IngestReadingsResponse);
+
+  // Offers a unary REST-compatible batch path through the edge gateway.
+  rpc SubmitReadings(SubmitReadingsRequest) returns (IngestReadingsResponse) {
+    option (google.api.http) = {
+      post: "/v1/readings:batch"
+      body: "*"
+    };
+  }
+}
+
+message IngestReadingsRequest {
+  SignedMeterReading reading = 1;
+}
+
+message MeterReading {
+  string reading_id = 1;
+  string household_id = 2;
+  string meter_id = 3;
+  google.protobuf.Timestamp interval_start = 4;
+  uint64 produced_energy_wh = 5;
+  uint64 consumed_energy_wh = 6;
+}
+
+message SignedMeterReading {
+  MeterReading reading = 1;
+  string key_id = 2;
+  bytes signature = 3;
+}
+
+message IngestReadingsResponse {
+  uint64 accepted_count = 1;
+  uint64 duplicate_count = 2;
+  string last_accepted_reading_id = 3;
+}
+
+message SubmitReadingsRequest {
+  repeated SignedMeterReading readings = 1;
+}

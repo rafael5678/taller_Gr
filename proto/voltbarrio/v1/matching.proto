@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service MatchingService {
+  // auction_id makes retries safe if the coordinator loses the response.
+  rpc RunAuction(RunAuctionRequest) returns (RunAuctionResponse);
+  rpc SubscribeAuctionResults(SubscribeAuctionResultsRequest) returns (stream SubscribeAuctionResultsResponse);
+}
+
+message RunAuctionRequest {
+  string auction_id = 1;
+  google.protobuf.Timestamp interval_start = 2;
+}
+
+message SubscribeAuctionResultsRequest {
+  string auction_id = 1;
+}
+
+message RunAuctionResponse {
+  ClearingResult result = 1;
+}
+
+message SubscribeAuctionResultsResponse {
+  ClearingResult result = 1;
+}
+
+message ClearingResult {
+  string auction_id = 1;
+  google.protobuf.Timestamp interval_start = 2;
+  uint64 cleared_energy_wh = 3;
+  uint64 closing_price_microcredits_per_kwh = 4;
+  repeated MatchedTrade trades = 5;
+}
+
+message MatchedTrade {
+  string trade_id = 1;
+  string buy_order_id = 2;
+  string sell_order_id = 3;
+  string buyer_household_id = 4;
+  string seller_household_id = 5;
+  uint64 energy_wh = 6;
+}

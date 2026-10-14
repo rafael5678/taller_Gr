@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: voltbarrio-medicion-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./services/medicion/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: voltbarrio-demo-db
+          property: connectionString
+      - key: GRPC_ADDR
+        value: 127.0.0.1:9090
+      - key: GRPC_INSECURE_LOCAL
+        value: "true"
+      - key: HTTP_ADDR
+        value: 0.0.0.0:10000
+      - key: MEASUREMENT_MIGRATION_FILE
+        value: /app/migrations/003_measurements.sql
+      - key: MEASUREMENT_RATE_LIMIT
+        value: "120"
+      - key: MEASUREMENT_PUBLIC_KEYS
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://voltbarrio-frontend.onrender.com
+
+  - type: web
+    name: voltbarrio-frontend
+    runtime: static
+    buildCommand: sh web/render-build.sh
+    staticPublishPath: ./web/dist
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: voltbarrio-medicion-demo
+          property: host
+
+databases:
+  - name: voltbarrio-demo-db
+    databaseName: volt
+    user: volt
+    plan: free

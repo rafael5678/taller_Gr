@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service OrderService {
+  // Repeating the same order_id with the same contents returns the original
+  // outcome rather than placing a second order.
+  rpc SubmitOrder(SubmitOrderRequest) returns (SubmitOrderResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+}
+
+enum OrderSide {
+  ORDER_SIDE_UNSPECIFIED = 0;
+  ORDER_SIDE_BUY = 1;
+  ORDER_SIDE_SELL = 2;
+}
+
+enum OrderState {
+  ORDER_STATE_UNSPECIFIED = 0;
+  ORDER_STATE_OPEN = 1;
+  ORDER_STATE_PARTIALLY_FILLED = 2;
+  ORDER_STATE_FILLED = 3;
+  ORDER_STATE_CANCELLED = 4;
+  ORDER_STATE_EXPIRED = 5;
+}
+
+message SubmitOrderRequest {
+  string order_id = 1;
+  string household_id = 2;
+  OrderSide side = 3;
+  google.protobuf.Timestamp interval_start = 4;
+  uint64 energy_wh = 5;
+  uint64 limit_price_microcredits_per_kwh = 6;
+}
+
+message SubmitOrderResponse {
+  string order_id = 1;
+  OrderState state = 2;
+  google.protobuf.Timestamp accepted_at = 3;
+}
+
+message CancelOrderRequest {
+  string cancellation_id = 1;
+  string order_id = 2;
+}
+
+message CancelOrderResponse {
+  string order_id = 1;
+  OrderState state = 2;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message GetOrderResponse {
+  string order_id = 1;
+  string household_id = 2;
+  OrderSide side = 3;
+  google.protobuf.Timestamp interval_start = 4;
+  uint64 energy_wh = 5;
+  uint64 remaining_energy_wh = 6;
+  uint64 limit_price_microcredits_per_kwh = 7;
+  OrderState state = 8;
+}

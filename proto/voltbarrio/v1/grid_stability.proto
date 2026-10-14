@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service GridStabilityService {
+  // The server applies the configured transformer limit and streams one
+  // validated batch for each submitted batch.
+  rpc ValidateClearingBatches(stream ValidateClearingBatchesRequest) returns (stream ValidateClearingBatchesResponse);
+}
+
+message ValidateClearingBatchesRequest {
+  ClearingBatch batch = 1;
+}
+
+message ValidateClearingBatchesResponse {
+  ValidatedBatch batch = 1;
+}
+
+message ClearingBatch {
+  string batch_id = 1;
+  google.protobuf.Timestamp interval_start = 2;
+  uint64 closing_price_microcredits_per_kwh = 3;
+  repeated ProposedTrade trades = 4;
+}
+
+message ProposedTrade {
+  string trade_id = 1;
+  string buyer_household_id = 2;
+  string seller_household_id = 3;
+  uint64 energy_wh = 4;
+}
+
+message ValidatedBatch {
+  string batch_id = 1;
+  uint64 transformer_limit_wh = 2;
+  uint64 proposed_energy_wh = 3;
+  uint64 accepted_energy_wh = 4;
+  bool recortado_por_red = 5;
+  uint64 closing_price_microcredits_per_kwh = 6;
+  repeated ValidatedTrade trades = 7;
+}
+
+message ValidatedTrade {
+  string trade_id = 1;
+  uint64 proposed_energy_wh = 2;
+  uint64 accepted_energy_wh = 3;
+}

@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service SettlementService {
+  // settlement_id is the idempotency key for the ledger posting operation.
+  rpc SettleInterval(SettleIntervalRequest) returns (SettleIntervalResponse);
+  // Compensation appends reversing postings; it never deletes the original
+  // settlement, preserving an auditable ledger history.
+  rpc CompensateInterval(CompensateIntervalRequest) returns (CompensateIntervalResponse);
+  rpc GetSettlement(GetSettlementRequest) returns (GetSettlementResponse);
+}
+
+enum SettlementState {
+  SETTLEMENT_STATE_UNSPECIFIED = 0;
+  SETTLEMENT_STATE_POSTED = 1;
+  SETTLEMENT_STATE_COMPENSATED = 2;
+}
+
+message SettleIntervalRequest {
+  string settlement_id = 1;
+  string auction_id = 2;
+  google.protobuf.Timestamp interval_start = 3;
+  repeated LedgerPosting postings = 4;
+}
+
+message LedgerPosting {
+  string entry_id = 1;
+  string account_id = 2;
+  // Positive values are debits; negative values are credits. A balanced
+  // settlement has a signed sum of zero.
+  int64 signed_amount_microcredits = 3;
+}
+
+message SettleIntervalResponse {
+  string settlement_id = 1;
+  SettlementState state = 2;
+  repeated string ledger_entry_ids = 3;
+}
+
+message CompensateIntervalRequest {
+  string compensation_id = 1;
+  string settlement_id = 2;
+  string reason = 3;
+}
+
+message CompensateIntervalResponse {
+  string compensation_id = 1;
+  SettlementState state = 2;
+  repeated string reversal_entry_ids = 3;
+}
+
+message GetSettlementRequest {
+  string settlement_id = 1;
+}
+
+message GetSettlementResponse {
+  string settlement_id = 1;
+  string auction_id = 2;
+  google.protobuf.Timestamp interval_start = 3;
+  SettlementState state = 4;
+  repeated LedgerPosting postings = 5;
+}

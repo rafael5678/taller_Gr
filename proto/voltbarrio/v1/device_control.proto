@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package voltbarrio.v1;
+
+option go_package = "github.com/volt-barrio/volt-barrio/gen/go/voltbarrio/v1;voltbarrio";
+
+import "google/protobuf/timestamp.proto";
+
+service DeviceControlService {
+  // Each command carries its interval deadline; clients should also apply a
+  // gRPC deadline to the stream so a disconnected device cannot stall control.
+  rpc ControlDevices(stream DeviceControlRequest) returns (stream DeviceControlResponse);
+}
+
+enum ControlledDeviceType {
+  CONTROLLED_DEVICE_TYPE_UNSPECIFIED = 0;
+  CONTROLLED_DEVICE_TYPE_BATTERY = 1;
+  CONTROLLED_DEVICE_TYPE_EV_CHARGER = 2;
+}
+
+enum DeviceCommandStatus {
+  DEVICE_COMMAND_STATUS_UNSPECIFIED = 0;
+  DEVICE_COMMAND_STATUS_APPLIED = 1;
+  DEVICE_COMMAND_STATUS_REJECTED = 2;
+  DEVICE_COMMAND_STATUS_EXPIRED = 3;
+}
+
+message DeviceControlRequest {
+  oneof payload {
+    DeviceRegistration registration = 1;
+    DeviceCommandAcknowledgement acknowledgement = 2;
+    DeviceHeartbeat heartbeat = 3;
+  }
+}
+
+message DeviceRegistration {
+  string household_id = 1;
+  string device_id = 2;
+  ControlledDeviceType device_type = 3;
+}
+
+message DeviceCommandAcknowledgement {
+  string acknowledgement_id = 1;
+  string command_id = 2;
+  DeviceCommandStatus status = 3;
+  int64 applied_setpoint_watts = 4;
+}
+
+message DeviceHeartbeat {
+  string device_id = 1;
+  uint64 sequence_number = 2;
+}
+
+message DeviceControlResponse {
+  oneof payload {
+    DeviceControlCommand command = 1;
+    DeviceControlSessionReady session_ready = 2;
+    DeviceHeartbeatAcknowledgement heartbeat_acknowledgement = 3;
+  }
+}
+
+message DeviceControlCommand {
+  string command_id = 1;
+  string device_id = 2;
+  google.protobuf.Timestamp interval_start = 3;
+  google.protobuf.Timestamp execution_deadline = 4;
+  int64 setpoint_watts = 5;
+}
+
+message DeviceControlSessionReady {
+  string device_id = 1;
+}
+
+message DeviceHeartbeatAcknowledgement {
+  string device_id = 1;
+  uint64 sequence_number = 2;
+}
