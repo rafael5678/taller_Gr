@@ -76,7 +76,7 @@ func corsMiddleware(next http.Handler, allowedOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 		if origin != "" {
-			if allowedOrigin == "" || origin != allowedOrigin {
+			if !originAllowed(origin, allowedOrigin) {
 				http.Error(w, "origin is not allowed", http.StatusForbidden)
 				return
 			}
@@ -92,6 +92,19 @@ func corsMiddleware(next http.Handler, allowedOrigin string) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func originAllowed(origin, allowed string) bool {
+	origin = strings.TrimRight(strings.TrimSpace(origin), "/")
+	if origin == "" || strings.TrimSpace(allowed) == "" {
+		return false
+	}
+	for _, item := range strings.Split(allowed, ",") {
+		if strings.TrimRight(strings.TrimSpace(item), "/") == origin {
+			return true
+		}
+	}
+	return false
 }
 
 func requestIDMiddleware(next http.Handler) http.Handler {

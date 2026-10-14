@@ -133,9 +133,9 @@ certificados no son aptos para producción. Buf usa plugins locales para no
 enviar contratos a un servicio externo; `make proto` resuelve la dependencia
 de anotaciones HTTP de Google y genera el descriptor consumido por Envoy.
 
-La publicación opcional Render se limita a la demo de medición: una página
-estática, un servicio de medición y PostgreSQL. En Render el gateway REST y el
-servidor gRPC viven en el mismo contenedor; el gRPC queda ligado a loopback y
-no expuesto, mientras Render termina HTTPS público. Esto evita mTLS entre
+La publicación de la demo separa el sitio estático en Vercel del microservicio
+de medición y PostgreSQL en Render. En Render el gateway REST y el servidor
+gRPC viven en el mismo contenedor; el gRPC queda ligado a loopback y no
+expuesto, mientras Render termina HTTPS público. Esto evita mTLS entre
 contenedores en esa demo, pero no reemplaza la topología mTLS de Compose ni
 significa que el resto de la plataforma esté desplegado.

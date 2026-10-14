@@ -1,31 +1,42 @@
-# Publicar la demo en Render
+# Publicar la demo: Vercel y Render
 
-El Blueprint [`render.yaml`](../render.yaml) crea tres recursos:
+El frontend y el backend quedan en plataformas distintas:
 
-- `voltbarrio-medicion-demo`: backend Go de mediciones y REST.
-- `voltbarrio-frontend`: sitio estático para firmar y enviar una lectura.
-- `voltbarrio-demo-db`: PostgreSQL para mediciones aceptadas y rechazadas.
+- Vercel publica el sitio de `web/`. `vercel.json` construye `web/dist` e
+  inyecta la dirección del microservicio de medición.
+- Render, con [`render.yaml`](../render.yaml), crea dos recursos:
+  `voltbarrio-medicion-demo` (microservicio Go de mediciones) y
+  `voltbarrio-demo-db` (PostgreSQL).
 
-Esta publicación **no es el backend completo del mercado**: órdenes,
-emparejamiento, red, dispositivos, liquidación y auditoría todavía no tienen
-servidores ejecutables integrados. La demo solo comprueba el recorrido de una
-lectura firmada.
+Órdenes, emparejamiento, red, dispositivos, liquidación y auditoría siguen en
+el repositorio, pero todavía no tienen un servidor ejecutable. Esta publicación
+comprueba el microservicio de medición.
 
-## Publicación inicial
+## Frontend en Vercel
 
-1. Sube el proyecto a un repositorio GitHub al que tengas acceso. No agregues
-   `.env`, certificados ni llaves privadas.
-2. En Render, elige **New → Blueprint**, conecta ese repositorio y confirma
-   que Render detecte `render.yaml` en la raíz.
-3. Render mostrará los servicios y la base PostgreSQL que va a crear. Si pide
-   el valor inicial de `MEASUREMENT_PUBLIC_KEYS`, pega `{}` por ahora. Revisa
-   cualquier aviso de costos y elige **Apply** para desplegarlos. El primer
-   build compila Go y genera los stubs protobuf localmente dentro de la imagen.
-4. Espera a que backend y frontend indiquen **Live**. El backend debe responder
-   en `/healthz`. Si el dominio asignado al frontend no es
-   `https://voltbarrio-frontend.onrender.com`, cambia la variable
-   `FRONTEND_ORIGIN` del backend por el dominio exacto del sitio y redepliega.
-5. Abre el frontend. Genera una llave Ed25519 y copia el JSON público mostrado.
+1. En Vercel, importa `https://github.com/rafael5678/taller_Gr`.
+2. El proyecto debe llamarse `voltbarrio` para que el sitio quede en
+   `https://voltbarrio.vercel.app`. Ese origen ya está permitido por el
+   backend en `FRONTEND_ORIGIN`.
+3. No cambies el comando de build ni el directorio de salida: los toma de
+   `vercel.json`.
+4. Si Render asigna otro host al backend, define en Vercel la variable
+   `API_BASE_URL` con la URL `https://` completa y vuelve a desplegar.
+
+## Backend en Render
+
+1. El código ya está en GitHub. No agregues `.env`, certificados ni llaves
+   privadas.
+2. Abre [New Blueprint](https://dashboard.render.com/blueprint/new?repo=https://github.com/rafael5678/taller_Gr)
+   y confirma que Render detecte `render.yaml` en la raíz.
+3. Render mostrará el microservicio y la base PostgreSQL. Si pide el valor
+   inicial de `MEASUREMENT_PUBLIC_KEYS`, pega `{}`. Revisa cualquier aviso de
+   costos y elige **Apply**. El primer build compila Go y genera los stubs
+   protobuf dentro de la imagen.
+4. Espera a que el backend indique **Live** y responda en `/healthz`. Si el
+   sitio de Vercel no queda en `https://voltbarrio.vercel.app`, cambia
+   `FRONTEND_ORIGIN` por ese origen exacto, incluido `https://`, y redepliega.
+5. Abre el frontend. Genera una llave Ed25519 y copia el JSON público.
    En Render abre el backend, **Environment**, y pega ese JSON en
    `MEASUREMENT_PUBLIC_KEYS`; guarda y espera el redeploy.
 6. Descarga el archivo de llave privada que ofrece el navegador. Guárdalo en un

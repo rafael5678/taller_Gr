@@ -24,19 +24,7 @@ services:
       - key: MEASUREMENT_PUBLIC_KEYS
         sync: false
       - key: FRONTEND_ORIGIN
-        value: https://voltbarrio-frontend.onrender.com
-
-  - type: web
-    name: voltbarrio-frontend
-    runtime: static
-    buildCommand: sh web/render-build.sh
-    staticPublishPath: ./web/dist
-    envVars:
-      - key: API_BASE_URL
-        fromService:
-          type: web
-          name: voltbarrio-medicion-demo
-          property: host
+        value: https://voltbarrio.vercel.app
 
 databases:
   - name: voltbarrio-demo-db

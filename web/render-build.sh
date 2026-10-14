@@ -1,10 +1,10 @@
 #!/bin/sh
 set -eu
 
-case "${API_BASE_URL:-}" in
-  https://*) api_url="$API_BASE_URL" ;;
-  http://*) api_url="$API_BASE_URL" ;;
-  *) api_url="https://${API_BASE_URL:?Render did not provide API_BASE_URL}" ;;
+api_url="${API_BASE_URL:-https://voltbarrio-medicion-demo.onrender.com}"
+case "$api_url" in
+  https://*|http://*) ;;
+  *) api_url="https://${api_url}" ;;
 esac
 
 mkdir -p web/dist

@@ -57,12 +57,12 @@ asume que solo el gateway y servicios confiables llegan al backend; en
 producción los roles deben vincularse a identidades/certificados autenticados.
 El endpoint de métricas de medición queda en `:9100/`.
 
-## Demo frontend y backend en Render
+## Demo: frontend en Vercel y medición en Render
 
-Hay un Blueprint en `render.yaml` que crea el sitio estático, el backend de
-medición y PostgreSQL. La guía paso a paso está en
-[`docs/desplegar-render.md`](docs/desplegar-render.md). Esta es solo la demo de
-medición, no la plataforma completa.
+El sitio estático vive en Vercel. Render ejecuta solo el microservicio de
+medición y su PostgreSQL, definidos en `render.yaml`. La guía está en
+[`docs/desplegar-render.md`](docs/desplegar-render.md). Esta demo publica el
+servicio de medición, no los demás microservicios del mercado.
 
 La arquitectura y las decisiones iniciales se documentan en
 `docs/decisiones.md`.

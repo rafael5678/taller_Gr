@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo static frontend",
+  "buildCommand": "sh web/render-build.sh",
+  "outputDirectory": "web/dist"
+}
